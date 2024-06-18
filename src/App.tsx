@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import "./App.css";
-import { StacksMainnet} from "@stacks/network"
+import { StacksMainnet } from "@stacks/network";
 import {
   AppConfig,
   openContractCall,
@@ -20,6 +20,12 @@ const appDetails = {
 const alex = new AlexSDK();
 
 function App() {
+  const [allCurrencies, setAllCurrencies] = useState<Currency[]>([]);
+  useEffect(() => {
+    alex
+      .fetchSwappableCurrency()
+      .then((x) => setAllCurrencies(x.map((y) => y.id)));
+  }, []);
   const [userData, setUserData] = useState<UserData | undefined>(undefined);
 
   useEffect(() => {
@@ -42,7 +48,7 @@ function App() {
 
   const [from, setFrom] = useState<Currency>(Currency.STX);
   const [amount, setAmount] = useState("");
-  const [to, setTo] = useState<Currency>(Currency.ALEX);
+  const [to, setTo] = useState<Currency>("token-alex" as Currency);
 
   const valid =
     from != null &&
@@ -63,9 +69,9 @@ function App() {
       >
         <button
           onClick={async () => {
-            const result = await alex.fetchTokenList();
-            console.log(result)
-            alert(JSON.stringify(result, null, 2));
+            // const result = await alex.fetchTokenList();
+            // console.log(result)
+            // alert(JSON.stringify(result, null, 2));
           }}
         >
           Get Token Infos
@@ -73,7 +79,7 @@ function App() {
         <button
           onClick={async () => {
             const result = await alex.getLatestPrices();
-            console.log(result)
+            console.log(result);
             alert(JSON.stringify(result, null, 2));
           }}
         >
@@ -89,7 +95,7 @@ function App() {
           value={from}
           onChange={(e) => setFrom(e.target.value as Currency)}
         >
-          {Object.values(Currency).map((a) => (
+          {allCurrencies.map((a) => (
             <option key={a} value={a}>
               {a}
             </option>
@@ -97,7 +103,7 @@ function App() {
         </select>
         <p>to:</p>
         <select value={to} onChange={(e) => setTo(e.target.value as Currency)}>
-          {Object.values(Currency).map((a) => (
+          {allCurrencies.map((a) => (
             <option key={a} value={a}>
               {a}
             </option>
@@ -116,7 +122,7 @@ function App() {
               alert(
                 `Fee rate is ${feeRate * 100}%, fee is ${
                   Number(amount) * feeRate
-                } ${from}`
+                } ${from}`,
               );
             }}
           >
@@ -128,7 +134,7 @@ function App() {
               const result = await alex.getAmountTo(
                 from!,
                 BigInt(Number(amount) * 1e8),
-                to!
+                to!,
               );
               alert(`You will get ${Number(result) / 1e8} ${to}`);
             }}
@@ -148,18 +154,16 @@ function App() {
             disabled={!valid}
             onClick={async () => {
               const stxAddress = userData!.profile.stxAddress.mainnet;
-              const routers = await alex.getRouter(from!, to!);
-              const tx = alex.runSwap(
+              const tx = await alex.runSwap(
                 stxAddress,
                 from!,
                 to!,
                 BigInt(Number(amount) * 1e8),
                 BigInt(0),
-                routers
               );
               await openContractCall({
                 ...tx,
-                network: new StacksMainnet()
+                network: new StacksMainnet(),
               });
             }}
           >
