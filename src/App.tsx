@@ -69,9 +69,9 @@ function App() {
       >
         <button
           onClick={async () => {
-            // const result = await alex.fetchTokenList();
-            // console.log(result)
-            // alert(JSON.stringify(result, null, 2));
+            const result = await alex.fetchSwappableCurrency();
+            console.log(result);
+            alert(JSON.stringify(result, null, 2));
           }}
         >
           Get Token Infos
@@ -168,6 +168,19 @@ function App() {
             }}
           >
             Swap
+          </button>
+          <button
+            onClick={async () => {
+              const stxAddress = userData!.profile.stxAddress.mainnet;
+              const balance = await alex.getBalances(stxAddress);
+              console.log(balance)
+              const fixBigInt = Object.fromEntries(
+                Object.entries(balance).map(([k, v]) => [k, v?.toString()]),
+              );
+              alert(JSON.stringify(fixBigInt, null, 2));
+            }}
+          >
+            Get balance
           </button>
         </div>
       )}
